@@ -1,152 +1,61 @@
-/*
-JPM Stocks Dashboard UI + Free API Starter (Next.js App Router)
-- Branding: JPM (no medical)
-- Data sources: Financial Modeling Prep (FMP) + Twelve Data (optional)
-- Includes: landing header, watchlist table, "Super Sale" screener, cards
+<!DOCTYPE html>
+<html>
+<head>
+<title>JPM Market Insights</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-How to use (quick):
-1) Create Next.js app:  npx create-next-app@latest jpm-stocks
-2) Install deps: npm i
-3) Add env vars in .env.local:
-   FMP_API_KEY=your_fmp_key
-   TWELVE_API_KEY=your_twelve_key   # optional
-4) Add the files below into your project structure.
-5) Run: npm run dev
-
-Branding:
-- Put your JPM logo at /public/jpm-logo.svg (or .png) and adjust <Image src=...>.
-
-Product Idea (Roadmap):
-Phase A — Public site + live market display (no paywall yet)
-  • Show your watchlist + prices
-  • Add FB link/button
-
-Phase B — “Members only” for portfolio/income + 7-day trial + subscription
-  • Use Stripe Checkout
-  • Store “active subscriber” in your backend DB
-  • Frontend asks backend: “is this user active?”
-  • If not active → show subscribe page
-
-This repo already implements Phase A UI + the API routes. Phase B skeleton is included at the bottom.
-*/
-
-// ============================
-// FILE: /app/page.tsx
-// ============================
-
-import Image from "next/image";
-import { Suspense } from "react";
-
-type Quote = {
-  symbol: string;
-  name?: string;
-  price?: number;
-  changesPercentage?: number;
-  pe?: number;
-  marketCap?: number;
-};
-
-type SuperSaleRow = {
-  symbol: string;
-  price?: number;
-  pe?: number;
-  cash?: number;
-  debt?: number;
-  cashToDebt?: number;
-  changesPercentage?: number;
-};
-
-const DEFAULT_WATCHLIST = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA"];
-
-function formatCompact(n?: number) {
-  if (n === undefined || Number.isNaN(n)) return "—";
-  try {
-    return new Intl.NumberFormat("en-US", {
-      notation: "compact",
-      maximumFractionDigits: 2,
-    }).format(n);
-  } catch {
-    return String(n);
-  }
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0b0f19;
+  color:white;
 }
-
-function formatMoney(n?: number) {
-  if (n === undefined || Number.isNaN(n)) return "—";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(n);
+.header{
+  padding:20px;
+  background:#121a2b;
+  text-align:center;
 }
-
-function formatPct(n?: number) {
-  if (n === undefined || Number.isNaN(n)) return "—";
-  return `${n.toFixed(2)}%`;
+.card{
+  background:#1c2333;
+  margin:15px;
+  padding:15px;
+  border-radius:10px;
 }
-
-async function getJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Request failed (${res.status}): ${text.slice(0, 200)}`);
-  }
-  return (await res.json()) as T;
+a{
+  color:#4da6ff;
 }
+</style>
+</head>
 
-async function fetchWatchlist(symbols: string[]): Promise<Quote[]> {
-  const url = `/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}`;
-  return getJSON<Quote[]>(url);
-}
+<body>
 
-async function fetchSuperSale(symbols: string[]): Promise<SuperSaleRow[]> {
-  const url = `/api/supersale?symbols=${encodeURIComponent(symbols.join(","))}`;
-  return getJSON<SuperSaleRow[]>(url);
-}
+<div class="header">
+<h1>JPM MARKET INSIGHTS</h1>
+<p>Live Portfolio Dashboard</p>
+</div>
 
-function Badge({ children, tone }: { children: React.ReactNode; tone: "up" | "down" | "neutral" }) {
-  const cls =
-    tone === "up"
-      ? "bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20"
-      : tone === "down"
-      ? "bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/20"
-      : "bg-white/10 text-white/80 ring-1 ring-white/15";
-  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${cls}`}>{children}</span>;
-}
+<div class="card">
+<h2>📈 Portfolio Snapshot</h2>
+<p>Total Portfolio Value: $XXX,XXX</p>
+<p>Today's P/L: +$X,XXX</p>
+</div>
 
-function StatCard({ title, value, sub }: { title: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5 shadow-sm">
-      <div className="text-sm text-white/70">{title}</div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight text-white">{value}</div>
-      {sub ? <div className="mt-1 text-xs text-white/55">{sub}</div> : null}
-    </div>
-  );
-}
+<div class="card">
+<h2>💼 Holdings</h2>
+<ul>
+<li>NVDA</li>
+<li>META</li>
+<li>TSLA</li>
+<li>AAPL</li>
+<li>AMD</li>
+</ul>
+</div>
 
-function SectionTitle({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="flex items-end justify-between gap-4">
-      <div>
-        <h2 className="text-xl font-semibold text-white">{title}</h2>
-        <p className="mt-1 text-sm text-white/65">{desc}</p>
-      </div>
-      <div className="hidden md:flex items-center gap-2">
-        <a
-          href="#"
-          className="rounded-xl bg-white/10 hover:bg-white/15 px-3 py-2 text-sm text-white/90 ring-1 ring-white/15"
-        >
-          Export
-        </a>
-        <a
-          href="#"
-          className="rounded-xl bg-emerald-500/15 hover:bg-emerald-500/20 px-3 py-2 text-sm text-emerald-200 ring-1 ring-emerald-500/20"
-        >
-          Add symbols
-        </a>
-      </div>
-    </div>
-  );
-}
+<div class="card">
+<h2>🔗 Follow Me</h2>
+<a href="https://facebook.com/yourpage">My Facebook Page</a>
+</div>
 
-async function WatchlistTable({ symbols }: { symbols: string[] }) {
-  const data = await fetchWatchlis
+</body>
+</html>
