@@ -1,128 +1,152 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JPM Market Insights</title>
+/*
+JPM Stocks Dashboard UI + Free API Starter (Next.js App Router)
+- Branding: JPM (no medical)
+- Data sources: Financial Modeling Prep (FMP) + Twelve Data (optional)
+- Includes: landing header, watchlist table, "Super Sale" screener, cards
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#0b0f19;
-  color:white;
-}
-.container{
-  max-width:1000px;
-  margin:auto;
-  padding:20px;
-}
-.header{
-  background:linear-gradient(135deg,#111827,#0f172a);
-  padding:25px;
-  border-radius:12px;
-  border:1px solid #2b3245;
-}
-h1{
-  margin:0;
-  color:#f5c542;
-}
-.subtitle{
-  color:#9ca3af;
-  margin-top:8px;
-}
-.card{
-  background:#111827;
-  margin-top:15px;
-  padding:18px;
-  border-radius:12px;
-  border:1px solid #2b3245;
-}
-h2{
-  margin-top:0;
-  color:#22c55e;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  padding:10px;
-  border-bottom:1px solid #2b3245;
-  text-align:left;
-}
-th{
-  color:#f5c542;
-}
-.footer{
-  margin-top:20px;
-  font-size:13px;
-  color:#9ca3af;
-}
-.btn{
-  display:inline-block;
-  padding:10px 14px;
-  background:#22c55e;
-  color:black;
-  font-weight:bold;
-  border-radius:8px;
-  text-decoration:none;
-}
-</style>
-</head>
+How to use (quick):
+1) Create Next.js app:  npx create-next-app@latest jpm-stocks
+2) Install deps: npm i
+3) Add env vars in .env.local:
+   FMP_API_KEY=your_fmp_key
+   TWELVE_API_KEY=your_twelve_key   # optional
+4) Add the files below into your project structure.
+5) Run: npm run dev
 
-<body>
-<div class="container">
+Branding:
+- Put your JPM logo at /public/jpm-logo.svg (or .png) and adjust <Image src=...>.
 
-<div class="header">
-  <h1>JPM Market Insights</h1>
-  <div class="subtitle">
-    Stock Market Insights • Portfolio • Investor Mindset
-  </div>
-</div>
+Product Idea (Roadmap):
+Phase A — Public site + live market display (no paywall yet)
+  • Show your watchlist + prices
+  • Add FB link/button
 
-<div class="card">
-  <h2>About JPM</h2>
-  <p>
-    Sharing my personal stock portfolio, market insights, and investing mindset.
-    Focused on fundamentals, long-term growth, and smart opportunities.
-  </p>
-</div>
+Phase B — “Members only” for portfolio/income + 7-day trial + subscription
+  • Use Stripe Checkout
+  • Store “active subscriber” in your backend DB
+  • Frontend asks backend: “is this user active?”
+  • If not active → show subscribe page
 
-<div class="card">
-  <h2>Portfolio Snapshot</h2>
-  <table>
-    <tr>
-      <th>Ticker</th>
-      <th>Category</th>
-      <th>Notes</th>
-    </tr>
-    <tr><td>NVDA</td><td>AI / Chips</td><td>AI infrastructure leader</td></tr>
-    <tr><td>META</td><td>Big Tech</td><td>Ads + AI growth</td></tr>
-    <tr><td>MSFT</td><td>Big Tech</td><td>Cloud & AI</td></tr>
-    <tr><td>GOOGL</td><td>Big Tech</td><td>Search + AI ecosystem</td></tr>
-    <tr><td>AAPL</td><td>Big Tech</td><td>Strong ecosystem</td></tr>
-    <tr><td>AMZN</td><td>Big Tech</td><td>E-commerce & cloud</td></tr>
-    <tr><td>TSLA</td><td>Innovation</td><td>EV & software</td></tr>
-    <tr><td>PLTR</td><td>AI Software</td><td>Data platform</td></tr>
-    <tr><td>SOFI</td><td>Fintech</td><td>Growth fintech</td></tr>
-    <tr><td>HOOD</td><td>Fintech</td><td>Trading platform</td></tr>
-    <tr><td>JPM</td><td>Financials</td><td>Value anchor</td></tr>
-  </table>
-</div>
+This repo already implements Phase A UI + the API routes. Phase B skeleton is included at the bottom.
+*/
 
-<div class="card">
-  <h2>Subscribe</h2>
-  <p>
-    Follow for future insights, watchlists, and market updates.
-  </p>
-  <a class="btn" href="#">Coming Soon</a>
-</div>
+// ============================
+// FILE: /app/page.tsx
+// ============================
 
-<div class="footer">
-  ⚠️ Not financial advice. For educational & personal sharing only.
-</div>
+import Image from "next/image";
+import { Suspense } from "react";
 
-</div>
-</body>
-</html>
+type Quote = {
+  symbol: string;
+  name?: string;
+  price?: number;
+  changesPercentage?: number;
+  pe?: number;
+  marketCap?: number;
+};
+
+type SuperSaleRow = {
+  symbol: string;
+  price?: number;
+  pe?: number;
+  cash?: number;
+  debt?: number;
+  cashToDebt?: number;
+  changesPercentage?: number;
+};
+
+const DEFAULT_WATCHLIST = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA"];
+
+function formatCompact(n?: number) {
+  if (n === undefined || Number.isNaN(n)) return "—";
+  try {
+    return new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumFractionDigits: 2,
+    }).format(n);
+  } catch {
+    return String(n);
+  }
+}
+
+function formatMoney(n?: number) {
+  if (n === undefined || Number.isNaN(n)) return "—";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+function formatPct(n?: number) {
+  if (n === undefined || Number.isNaN(n)) return "—";
+  return `${n.toFixed(2)}%`;
+}
+
+async function getJSON<T>(url: string): Promise<T> {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Request failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+  return (await res.json()) as T;
+}
+
+async function fetchWatchlist(symbols: string[]): Promise<Quote[]> {
+  const url = `/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}`;
+  return getJSON<Quote[]>(url);
+}
+
+async function fetchSuperSale(symbols: string[]): Promise<SuperSaleRow[]> {
+  const url = `/api/supersale?symbols=${encodeURIComponent(symbols.join(","))}`;
+  return getJSON<SuperSaleRow[]>(url);
+}
+
+function Badge({ children, tone }: { children: React.ReactNode; tone: "up" | "down" | "neutral" }) {
+  const cls =
+    tone === "up"
+      ? "bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20"
+      : tone === "down"
+      ? "bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/20"
+      : "bg-white/10 text-white/80 ring-1 ring-white/15";
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${cls}`}>{children}</span>;
+}
+
+function StatCard({ title, value, sub }: { title: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5 shadow-sm">
+      <div className="text-sm text-white/70">{title}</div>
+      <div className="mt-2 text-2xl font-semibold tracking-tight text-white">{value}</div>
+      {sub ? <div className="mt-1 text-xs text-white/55">{sub}</div> : null}
+    </div>
+  );
+}
+
+function SectionTitle({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div className="flex items-end justify-between gap-4">
+      <div>
+        <h2 className="text-xl font-semibold text-white">{title}</h2>
+        <p className="mt-1 text-sm text-white/65">{desc}</p>
+      </div>
+      <div className="hidden md:flex items-center gap-2">
+        <a
+          href="#"
+          className="rounded-xl bg-white/10 hover:bg-white/15 px-3 py-2 text-sm text-white/90 ring-1 ring-white/15"
+        >
+          Export
+        </a>
+        <a
+          href="#"
+          className="rounded-xl bg-emerald-500/15 hover:bg-emerald-500/20 px-3 py-2 text-sm text-emerald-200 ring-1 ring-emerald-500/20"
+        >
+          Add symbols
+        </a>
+      </div>
+    </div>
+  );
+}
+
+async function WatchlistTable({ symbols }: { symbols: string[] }) {
+  const data = await fetchWatchlis
