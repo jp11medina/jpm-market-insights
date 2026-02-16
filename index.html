@@ -1,58 +1,41 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<title>JPM Market Insights</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0b0f19;
-  color:white;
-}
-.header{
-  background:#111827;
-  padding:20px;
-  text-align:center;
-}
-.card{
-  background:#1f2937;
-  margin:15px;
-  padding:15px;
-  border-radius:12px;
-}
-a{color:#4da6ff;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JPM Market Insights</title>
+  <style>
+    body{margin:0;font-family:Arial;background:#0b0f19;color:#fff}
+    .header{background:#111827;padding:18px;text-align:center}
+    .wrap{max-width:900px;margin:0 auto;padding:14px}
+    .card{background:#1f2937;margin:12px 0;padding:14px;border-radius:12px}
+    a{color:#4da6ff}
+  </style>
 </head>
-
 <body>
+  <div class="header">
+    <h1 style="margin:0">JPM MARKET INSIGHTS</h1>
+    <p style="margin:6px 0 0;opacity:.85">Public dashboard (v1)</p>
+  </div>
 
-<div class="header">
-<h1>JPM MARKET INSIGHTS</h1>
-<p>Live Portfolio Dashboard</p>
-</div>
+  <div class="wrap">
+    <div class="card">
+      <h2 style="margin:0 0 10px">📈 Portfolio</h2>
+      <div>Total Value: <b>$100,000</b></div>
+      <div>Today: <b>+2.5%</b></div>
+    </div>
 
-<div class="card">
-<h2>📈 Portfolio</h2>
-<p>Total Value: $100,000</p>
-<p>Today's Change: +2.5%</p>
-</div>
+    <div class="card">
+      <h2 style="margin:0 0 10px">💼 Holdings</h2>
+      <ul style="margin:0;padding-left:18px">
+        <li>NVDA</li><li>META</li><li>TSLA</li><li>AAPL</li>
+      </ul>
+    </div>
 
-<div class="card">
-<h2>💼 Holdings</h2>
-<ul>
-<li>NVDA</li>
-<li>META</li>
-<li>TSLA</li>
-<li>AAPL</li>
-</ul>
-</div>
-
-<div class="card">
-<h2>🔗 Follow Me</h2>
-<a href="https://facebook.com">My Facebook</a>
-</div>
-
+    <div class="card">
+      <h2 style="margin:0 0 10px">🔗 Links</h2>
+      <a href="https://facebook.com" target="_blank" rel="noreferrer">My Facebook</a>
+    </div>
+  </div>
 </body>
 </html>
